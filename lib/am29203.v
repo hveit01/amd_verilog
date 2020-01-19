@@ -94,7 +94,7 @@ module am29203(a, b, da, db,
               gn, povr, z, cn4,
               qio0, qio3, sio0, sio3,
               y, oey_, 
-              cp,
+              cp
 			 );
 
 // RAM addresses
@@ -203,14 +203,14 @@ function fsio0(input [8:0] i, input notspec, aluf0, parity);
 		casex (i[8:7])
 		'b00: 	 fsio0 = aluf0;  // RAMDA/L, RAMQDA/L
 		'b01:	 fsio0 = parity; // RAM, QD, LOADQ, RAMQ
-		default: fsio0 = 'bZ;    // all others
+		default: fsio0 = 1'bZ;    // all others
 		endcase
 	end else begin
 		casex (i[8:4])
 		'b00X00, 'b0001X,
         'b01100:          fsio0 = aluf0;  // MULT/TWOMULT, BCD2BIN/MULTIBCD
 		'b0X110, 'b010X0: fsio0 = parity; // DECRMNT, INCRMNT, SGNTWO, BCDDIV2
-		default:          fsio0 = 'bZ;    // all others
+		default:          fsio0 = 1'bZ;   // all others
 		endcase
 	end
 endfunction
@@ -223,7 +223,7 @@ function fsio3(input [8:0] i, input notspec, mss, input aluf3, aluf2, ra3, sio0)
 		'b1_10X0: 			fsio3 = aluf2; // RAMUPA/RAMQUPA MSS
 		'b0_10X0, 'bX_10X1,                // RAMUPA/RAMQUPA xSS, RAMUPL/RAMQUPL
 		'bX_110X, 'bX_1111: fsio3 = aluf3; // YBUS, QUP, RAMEXT
-		default:  			fsio3 = 'bZ;   // all others
+		default:  			fsio3 = 1'bZ;  // all others
         endcase
     end else begin
 		casex ( { mss, i[8:4] } )
@@ -232,8 +232,8 @@ function fsio3(input [8:0] i, input notspec, mss, input aluf3, aluf2, ra3, sio0)
         'bX_1001X:            fsio3 = aluf3; // BIN2BCD/MULTIBCD
 		'b1_10100:			  fsio3 = ra3;   // DLN MSS
 		'b1_11000:			  fsio3 = ~ra3;  // DIVIDE MSS
-        'bX_10110, 'bX_11X10: fsio3 = 'b0;   // BCDADD, BCDSUBS/BCDSUBR
-		default:			  fsio3 = 'bZ;   // all others
+        'bX_10110, 'bX_11X10: fsio3 = 1'b0;  // BCDADD, BCDSUBS/BCDSUBR
+		default:			  fsio3 = 1'bZ;  // all others
 		endcase
     end	
 endfunction
@@ -265,13 +265,13 @@ function fqio0(input [8:0] i, input notspec, qreg0);
 	if (notspec) begin
 		casex (i[8:5])
 		'b001X, 'b0101:	    fqio0 = qreg0;  // RAMQDA/RAMQDL, QD
-		default:		    fqio0 = 'bZ;    // all others
+		default:		    fqio0 = 1'bZ;   // all others
 		endcase
 	end else begin
 		casex (i[8:4])
         'b0001X,                            // BCD2BIN/MULTIBIN
 		'b00X00, 'b01100:	fqio0 = qreg0;  // MULT/TWOMULT, TWOLAST
-		default:		    fqio0 = 'bZ;    // all others
+		default:		    fqio0 = 1'bZ;   // all others
 		endcase
 	end
 endfunction
@@ -281,13 +281,13 @@ function fqio3(input [8:0] i, input notspec, qreg3);
 	if (notspec) begin
 		casex (i[8:5])
 		'b101X, 'b1101:	    fqio3 = qreg3;      // RAMQUPA/RAMQUPL, QUP
-		default:		    fqio3 = 'bZ;        // all others
+		default:		    fqio3 = 1'bZ;       // all others
 		endcase
 	end else begin
 		casex (i[8:4])
         'b10010,                                // BIN2BCD
 		'b10X00, 'b11X00:	fqio3 = qreg3;      // SLN/DLN, DIVIDE/DIVLAST
-		default:		    fqio3 = 'bZ;        // all others
+		default:		    fqio3 = 1'bZ;       // all others
 		endcase
 	end
 endfunction
@@ -339,7 +339,7 @@ function fz(input [8:0] i, input notspec, mss, lss, input [3:0] y, qreg, input s
 		'bXX_10000:				fz = ~(|qreg);          // SLN
 		'bXX_10100:				fz = ~((|qreg) | (|y)); // DLN
 		'b10_11X00:				fz = sgnff;             // DIVIDE/DIVLAST
-		default:		        fz = 'bZ;
+		default:		        fz = 1'bZ;
 		endcase
 	end
 endfunction
@@ -388,7 +388,7 @@ endfunction
 // WRITE decoder
 function fwrite(input [8:0] i, input notspec, lss_, ien_);
 	if (lss_)
-		fwrite = 'bZ;                                   // not LSS: is input
+		fwrite = 1'bZ;                                   // not LSS: is input
 	else if (notspec) begin
 		casex (i[8:5])
 		'b0101, 'b0110,                                 // QD, LOADQ
@@ -416,8 +416,8 @@ assign notspec = |i[3:0]; // not special op
 assign issln = i=='b100000000;
 assign isdln = i=='b101000000;
 
-`define BCDA aluops[9]
-`define BCDS aluops[10]
+//`define BCDA aluops[9]
+//`define BCDS aluops[10]
 assign aluops = alu_decoder(i, z, lss);
 
 // da, db as outputs
@@ -484,7 +484,7 @@ assign y = (oey_==1'b1) ? `ALLZ :
            `BCDA ? bcdca : f;
 
 // calculate Z, cn4, p_/ovr, q_/n, am29203: Z is controlled by oey_
-assign z    = oey_ ? 'bz : fz(i, notspec, mss, lss, y, qreg, sgnff, smux[3]);
+assign z    = oey_ ? 1'bz : fz(i, notspec, mss, lss, y, qreg, sgnff, smux[3]);
 assign cn4  = fcn4(i, issln, isdln, mss, aluf, qreg, intcn4);
 assign povr = fpovr(i, issln, isdln, mss, aluf, qreg, oalu, palu);
 assign gn   = fgn(i, issln, mss, qreg[3], f[3], smux[3] ^ f[3], galu);
